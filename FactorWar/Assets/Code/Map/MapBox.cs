@@ -13,7 +13,7 @@ public class MapBox : ScriptableObject {
     [SerializeField]
     private BoxPosition boxPosition;
     public bool occupied;
-    public Item item;
+    public Entity entity;
 
     public void setPosition(float newX, float newY)
     {
@@ -26,10 +26,10 @@ public class MapBox : ScriptableObject {
         return boxPosition;
     }
 
-    public void setItem(Item newItem)
+    public void setEntity(Entity newEntity)
     {
         // If the object can be placed in blocked terrain, then yes (INTERFACE)
-        item = newItem;
+        entity = newEntity;
         setOccupiedTrue();
     }
 
