@@ -27,22 +27,13 @@ public class Map : MonoBehaviour
 
     private void initMap(MapSize mapSize)
     {
-        int size = 12;
-        if (mapSize == MapSize.SMALL)
-        {
-            size = 12;
-        }
-        else
-        {
-            size = 24;
-        }
         for (int z = 0; z < height; z++)
         {
             for (int x = 0; x < width; x++)
             {
                 GameObject terrain = Instantiate(prefabTerrain);
                 terrain.transform.position = new Vector3((x + z * 0.5f - z / 2) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
-                //terrain.GetComponent<MapBoxScript>().mapbox.setPosition(x, z);
+                terrain.GetComponent<MapBoxScript>().mapbox.setPosition(x, z);
                 cells.Add(terrain);
             }
         }
