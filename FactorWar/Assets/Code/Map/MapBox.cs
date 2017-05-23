@@ -1,8 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-[CreateAssetMenu(fileName = "NewMapBox", menuName = "MAPS/MapBox", order = 2)]
-public class MapBox : ScriptableObject {
+[System.Serializable]
+public class MapBox : MonoBehaviour {
     public enum TerrainType {SIMPLE, BLOCKED , OBSTACLE };
     [Header("Terrain Type")]
     public TerrainType terrainType;
@@ -14,11 +14,18 @@ public class MapBox : ScriptableObject {
     private BoxPosition boxPosition;
     public bool occupied;
     public Entity entity;
+    public Vector3 cell;
 
-    public void setPosition(float newX, float newY)
+    public Material[] greenMaterial;
+    public Material[] redMaterial;
+
+    public void setPosition(float newX, float newY, float newZ)
     {
         boxPosition.xPos = newX;
         boxPosition.yPos = newY;
+        cell.x = newX;
+        cell.y = newZ;
+        cell.z = newY;
     }
 
     public BoxPosition getPosition()
@@ -51,5 +58,15 @@ public class MapBox : ScriptableObject {
     public Material[] getMaterials()
     {
         return materials;
+    }
+
+    public Material[] changeColorRed()
+    {
+        return redMaterial;
+    }
+
+    public Material[] changeColorGreen()
+    {
+        return greenMaterial;
     }
 }

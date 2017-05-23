@@ -100,6 +100,7 @@
     <Compile Include="Assets\Code\GenericComponents\SingletonComponent.cs" />
     <Compile Include="Assets\Code\Map\Data.cs" />
     <Compile Include="Assets\Code\Map\HexMath.cs" />
+    <Compile Include="Assets\Code\Map\HexagonCell.cs" />
     <Compile Include="Assets\Code\Map\Map.cs" />
     <Compile Include="Assets\Code\Map\MapBox.cs" />
     <Compile Include="Assets\Code\Map\MapBoxScript.cs" />
