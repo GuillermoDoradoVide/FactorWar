@@ -66,6 +66,24 @@ public class Map : MonoBehaviour
         }
 
     }
+    [ContextMenu(itemName: "Line of sight")]
+    public void calculateLineOfSight(/*List<Vector3> rangeOfSight*/)
+    {
+        List<Vector3> line = new List<Vector3>();
+        line = HexagonCell.hexLineOfSight(cells[10, 10].cell, cells[19, 19].cell);
+        for (int i = 0; i < line.Count; i ++)
+        {
+            if (cells[(int)HexagonCell.cubeToAxial(line[i]).x, (int)HexagonCell.cubeToAxial(line[i]).y].terrainType != MapBox.TerrainType.SIMPLE)
+            {
+                Debugger.printLog("obstacle: " + line[i]);
+                cells[(int)HexagonCell.cubeToAxial(line[i]).x, (int)HexagonCell.cubeToAxial(line[i]).y].GetComponent<MapBoxScript>().changeColorToRed();
+            }
+            else
+            {
+                cells[(int)HexagonCell.cubeToAxial(line[i]).x, (int)HexagonCell.cubeToAxial(line[i]).y].GetComponent<MapBoxScript>().changeColorToGreen();
+            }
+        }
+    }
 
     private void Update()
     {
