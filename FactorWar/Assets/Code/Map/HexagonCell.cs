@@ -113,7 +113,6 @@ public static class HexagonCell {
                 for (int dir = 0; dir <= 5; dir++)
                 {
                     Vector3 neightbor = hexNeightborsDirections(hex.cell, dir);
-                    
                     posibilities.Add(neightbor);
                 }
             }

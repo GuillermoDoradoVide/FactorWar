@@ -14,17 +14,19 @@ public class Map : MonoBehaviour
 {
     public enum MapSize { SMALL, MEDIUM };
     [SerializeField]
-    public Dictionary<Vector2, MapBox> hexMap;
     public MapBox[,] cells;
     public Vector2 size;
     public const float outerRadius = 0.6f; // esto es 0.5f, pero para visualizar mejor lo he aumentado
     public const float innerRadius = outerRadius * 0.866025404f;
 
+    [Header("Area")]
+    public int vision;
+    public int range;
+
     public GameObject prefabTerrain;
 
     private void Start()
     {
-        hexMap = new Dictionary<Vector2, MapBox>();
         cells = new MapBox[(int)size.x, (int)size.y];
         initMap(MapSize.SMALL);
     }
@@ -35,34 +37,33 @@ public class Map : MonoBehaviour
         {
             for (int x = 0; x < size.x; x++)
             {
+                int y = - z - x;
                 GameObject terrain = Instantiate(prefabTerrain);
-                terrain.transform.position = new Vector3((x + z * 0.5f - z / 2) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
-                terrain.GetComponent<MapBoxScript>().mapbox.setPosition(HexagonCell.cubeToAxial(terrain.transform.position).x, 0, HexagonCell.cubeToAxial(terrain.transform.position).y);
+                terrain.transform.position = new Vector3((x + z * 0.5f) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
+                terrain.GetComponent<MapBoxScript>().mapbox.setPosition(x, y, z);
                // terrain.GetComponent<MapBoxScript>().mapbox.setPosition(HexagonCell.axialToCube(new Vector2(z,x)).x, HexagonCell.axialToCube(new Vector2(z, x)).y, HexagonCell.axialToCube(new Vector2(z,x)).z);
                 cells[z, x] = terrain.GetComponent<MapBoxScript>().mapbox;
-                terrain.GetComponentInChildren<Text>().text = "(" + z + "," + x + ")";
-                hexMap.Add(new Vector2(z, x + z / 2), terrain.GetComponent<MapBoxScript>().mapbox);
+                if(terrain.GetComponentInChildren<Text>() != null)
+                {
+                    terrain.GetComponentInChildren<Text>().text = "(" + z + "," + x + ")";
+                }
+                
             }
         }
     }
     [ContextMenu(itemName:"Area")]
     public void calculateArea()
     {
-        List<Vector3> areaToCheck = HexagonCell.hexRange(cells[10,10], 1);
+        List<Vector3> areaToCheck = HexagonCell.hexRange(cells[10,10], vision);
         for (int i = 0; i < areaToCheck.Count; i ++)
         {
-            //cells[(int)HexagonCell.cubeToAxial(areaToCheck[i]).x, (int)HexagonCell.cubeToAxial(areaToCheck[i]).y].GetComponent<MapBoxScript>().changeColorToGreen();
-            MapBox mapCell;
-            if(hexMap.TryGetValue(HexagonCell.cubeToAxial(areaToCheck[i]), out mapCell))
-            {
-                mapCell.GetComponent<MapBoxScript>().changeColorToGreen();
-            }
+            cells[(int)HexagonCell.cubeToAxial(areaToCheck[i]).x, (int)HexagonCell.cubeToAxial(areaToCheck[i]).y].GetComponent<MapBoxScript>().changeColorToGreen();
         } 
     }
     [ContextMenu(itemName: "Obstacles")]
     public void calculateTransitArea()
     {
-        List<Vector3> areaToCheck = HexagonCell.hexReacheable(cells[10, 10], 5);
+        List<Vector3> areaToCheck = HexagonCell.hexReacheable(cells[10, 10], vision);
         for (int i = 0; i < areaToCheck.Count; i++)
         {
             if (cells[(int)HexagonCell.cubeToAxial(areaToCheck[i]).x, (int)HexagonCell.cubeToAxial(areaToCheck[i]).y].terrainType != MapBox.TerrainType.SIMPLE)
@@ -73,11 +74,6 @@ public class Map : MonoBehaviour
             else
             {
                 cells[(int)HexagonCell.cubeToAxial(areaToCheck[i]).x, (int)HexagonCell.cubeToAxial(areaToCheck[i]).y].GetComponent<MapBoxScript>().changeColorToGreen();
-            }
-            MapBox mapCell;
-            if (hexMap.TryGetValue(areaToCheck[i], out mapCell))
-            {
-                mapCell.GetComponent<MapBoxScript>().changeColorToGreen();
             }
         }
 

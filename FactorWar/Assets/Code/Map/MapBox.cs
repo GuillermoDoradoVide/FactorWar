@@ -19,7 +19,7 @@ public class MapBox : MonoBehaviour {
     public Material[] greenMaterial;
     public Material[] redMaterial;
 
-    public void setPosition(float newX, float newY, float newZ = 0)
+    public void setPosition(float newX, float newY, float newZ)
     {
         boxPosition.xPos = newX;
         boxPosition.yPos = newY;
