@@ -59,7 +59,7 @@ public static class HexagonCell {
     {
         float x = hex.x;
         float z = hex.y;
-        float y = - x - z;
+        float y = - x - hex.y;
         return (new Vector3(x, y, z));
     }
 
