@@ -25,7 +25,9 @@ public class Map : MonoBehaviour
     public MapSize mapSize;
     public enum MapShape { NORMAL, SQUARE, HEXAGON };
     public MapShape mapShape;
-    public Vector2 size;
+    [Range(5,25)]
+    public int size;
+    [Range(5, 25)]
     public int hexagonN;
 
     public Dictionary<Vector2, MapBox> MapHex;
@@ -42,21 +44,21 @@ public class Map : MonoBehaviour
     {
         if (mapShape == MapShape.HEXAGON)
         {
-            cells = new MapBox[(int)(hexagonN + size.y), (int)(hexagonN + size.x)];
+            cells = new MapBox[(hexagonN + size), (hexagonN + size)];
             Debugger.printLog("MapHexSize: " + cells.Length);
             initHexagonMap();
         }
         else if (mapShape == MapShape.SQUARE)
         {
-            cells = new MapBox[(int)size.y, (int)(size.x + size.y / 2)];
+            cells = new MapBox[size, (int)(size * 1.5)];
             initSquareMap();
         }
         else
         {
-            cells = new MapBox[(int)size.x, (int)size.y];
-            for (int z = 0; z < size.y; z++)
+            cells = new MapBox[size, size];
+            for (int z = 0; z < size; z++)
             {
-                for (int x = 0; x < size.x; x++)
+                for (int x = 0; x < size; x++)
                 {
                     int y = -z - x;
                     //GameObject terrain = Instantiate(prefabTerrain);
@@ -70,7 +72,7 @@ public class Map : MonoBehaviour
                     GameObject terrain = Instantiate(prefabTerrain);
                     terrain.transform.position = new Vector3((x + z * 0.5f) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
                     terrain.GetComponent<MapBoxScript>().mapbox.setPosition(x, y, z);
-                    MapHex.Add(new Vector2((int)(z + size.y), (int)(x + size.x + (Mathf.Min(0, z)))), terrain.GetComponent<MapBoxScript>().mapbox);
+                    MapHex.Add(new Vector2((int)(z + size), (int)(x + size + (Mathf.Min(0, z)))), terrain.GetComponent<MapBoxScript>().mapbox);
                     //cells[z, x] = terrain.GetComponent<MapBoxScript>().mapbox;
                     if (terrain.GetComponentInChildren<Text>() != null)
                     {
@@ -90,38 +92,33 @@ public class Map : MonoBehaviour
             for (int x = -hexagonN; x < hexagonN; x++)
             {
                 int y = -z - x;
-                GameObject terrain = Instantiate(prefabTerrain);
-                terrain.transform.position = new Vector3((x + z * 0.5f) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
-                terrain.GetComponent<MapBoxScript>().mapbox.setPosition(x, y, z);
-                MapHex.Add(new Vector2((z + size.y), (x + size.x + (Mathf.Min(0, z)))), terrain.GetComponent<MapBoxScript>().mapbox);
+                if (Mathf.Abs(y) <= hexagonN)
+                {
+                    GameObject terrain = Instantiate(prefabTerrain);
+                    terrain.transform.position = new Vector3((x + z * 0.5f) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
+                    terrain.GetComponent<MapBoxScript>().mapbox.setPosition(x, y, z);
+                    MapHex.Add(new Vector2((z + size), (x + size + (Mathf.Min(0, z)))), terrain.GetComponent<MapBoxScript>().mapbox);
+                }
             }
         }
     }
 
     public void initSquareMap()
     {
-        for (int z = 0; z < size.y; z++)
+        for (int z = 0; z < size; z++)
         {
-            for (int x = 0; x < size.x; x++)
+            for (int x = (int)-size/2; x < (size + Mathf.FloorToInt(z / 2)); x++)
             {
                 int y = -z - x;
-                int aux = x + Mathf.FloorToInt(x + z/2);
-                GameObject terrain = Instantiate(prefabTerrain);
-                terrain.transform.position = new Vector3((aux + z * 0.5f) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
-                terrain.GetComponent<MapBoxScript>().mapbox.setPosition(aux, y, z);
-                MapHex.Add(new Vector2((z + size.y), (aux + size.x + (Mathf.Min(0, z)))), terrain.GetComponent<MapBoxScript>().mapbox);
-            }
-        }
-    }
+                int valueRange = (x + (z / 2));
+                if (valueRange > 0 && valueRange < size)
+                {
+                    GameObject terrain = Instantiate(prefabTerrain);
+                    terrain.transform.position = new Vector3((x + z * 0.5f) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
+                    terrain.GetComponent<MapBoxScript>().mapbox.setPosition(x, y, z);
+                    MapHex.Add(new Vector2((z + size), (x + size + (Mathf.Min(0, z)))), terrain.GetComponent<MapBoxScript>().mapbox);
+                }
 
-    [ContextMenu(itemName: "Form")]
-    public void mapFormRehorientation()
-    {
-        for (int z = 0; z < size.y; z++)
-        {
-            for (int x = 0; x < size.x; x++)
-            {
-                cells[z, x].transform.position = new Vector3(HexagonCell.cubeToOddr(cells[z, x].transform.position).x, 0, HexagonCell.cubeToOddr(cells[z, x].transform.position).y);
             }
         }
     }
@@ -129,12 +126,17 @@ public class Map : MonoBehaviour
     [ContextMenu(itemName:"Area")]
     public void calculateArea()
     {
-        List<Vector3> areaToCheck = HexagonCell.hexRange(cells[10,10], vision);
+        MapBox aux;
+        MapHex.TryGetValue(new Vector2(0,0), out aux);
+        
+        List<Vector3> areaToCheck = HexagonCell.hexRange(aux, vision);
         for (int i = 0; i < areaToCheck.Count; i ++)
         {
-            cells[(int)HexagonCell.cubeToAxial(areaToCheck[i]).x, (int)HexagonCell.cubeToAxial(areaToCheck[i]).y].GetComponent<MapBoxScript>().changeColorToGreen(); 
+            MapHex.TryGetValue(new Vector2((int)HexagonCell.cubeToAxial(areaToCheck[i]).x, (int)HexagonCell.cubeToAxial(areaToCheck[i]).y), out aux);
+            aux.GetComponent<MapBoxScript>().changeColorToGreen();
         } 
     }
+
     [ContextMenu(itemName: "Obstacles")]
     public void calculateTransitArea()
     {
