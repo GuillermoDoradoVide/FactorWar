@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class HexagonCell {
+public static class HexagonCell
+{
 
     static Vector3[] Directions = new Vector3[] { new Vector3(1, -1, 0), new Vector3(1, 0, -1), new Vector3(0, 1, -1), new Vector3(-1, 1, 0),
         new Vector3(-1, 0, 1), new Vector3(0, -1, 1)};
@@ -12,7 +13,7 @@ public static class HexagonCell {
 
     public static float hexFloatLerp(float a, float b, float t)
     {
-        return (a + (b-a) * t);
+        return (a + (b - a) * t);
     }
 
     public static Vector3 hexLerp(Vector3 a, Vector3 b, float t)
@@ -34,7 +35,8 @@ public static class HexagonCell {
         float y_diff = Mathf.Abs(y - hex.y);
         float z_diff = Mathf.Abs(z - hex.z);
 
-        if(x_diff > y_diff && x_diff > z_diff) {
+        if (x_diff > y_diff && x_diff > z_diff)
+        {
             x = -y - z;
         }
         else if (y_diff > z_diff)
@@ -59,8 +61,23 @@ public static class HexagonCell {
     {
         float x = hex.x;
         float z = hex.y;
-        float y = - x - hex.y;
+        float y = -x - hex.y;
         return (new Vector3(x, y, z));
+    }
+
+    public static Vector2 cubeToOddr(Vector3 cube)
+    {
+        float col = cube.x + (cube.z - (Mathf.Abs(cube.z) % 2)) / 2;
+        float row = cube.z;
+        return new Vector2(col, row);
+    }
+
+    public static Vector3 oddrToCube(Vector2 hex)
+    {
+        float x = hex.x - (hex.y - (Mathf.Abs(hex.y) % 2)) / 2;
+        float z = hex.y;
+        float y = -x - z;
+        return new Vector3(x, y, z);
     }
 
     private static Vector3 hexAdd(Vector3 hex, Vector3 direction)
@@ -120,15 +137,16 @@ public static class HexagonCell {
         return posibilities;
     }
 
-    public static List<Vector3> hexLineOfSight(Vector3 a, Vector3 b) 
+    public static List<Vector3> hexLineOfSight(Vector3 a, Vector3 b)
     {
         Vector3 epsionHex = new Vector3(Mathf.Epsilon, Mathf.Epsilon, Mathf.Epsilon);
         Vector3 newA = hexAdd(a, epsionHex);
         Vector3 newB = hexAdd(b, epsionHex);
         float N = hexDistance(newA, newB);
         List<Vector3> vision = new List<Vector3>();
-        for (int i = 0; i <= N; i ++) {
-            vision.Add(cubeRound(hexLerp(newA, newB, (1/N) * i)));
+        for (int i = 0; i <= N; i++)
+        {
+            vision.Add(cubeRound(hexLerp(newA, newB, (1 / N) * i)));
         }
         return vision;
     }
