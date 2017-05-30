@@ -9,13 +9,13 @@ public class GameEvent
 ///<summary>
 /// Raised when a dialog option is selected.
 /// </summary>
-public class DialogOptionSelectedEvent : GameEvent
+public class EventEntitySelect : GameEvent
 {
-    private int dialogSelected;
-    public int Dialog { get { return dialogSelected; } }
-    public DialogOptionSelectedEvent(int selected)
+    private MapBox unitMapbox;
+    public MapBox UnitMapbox { get { return unitMapbox; } }
+    public EventEntitySelect(MapBox mapbox)
     {
-        dialogSelected = selected;
+        unitMapbox = mapbox;
     }
 }
 

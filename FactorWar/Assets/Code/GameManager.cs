@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.EventSystems;
 
 public class GameManager : SingletonComponent<GameManager>
 {
@@ -62,44 +63,34 @@ public class GameManager : SingletonComponent<GameManager>
     // UPDATE *************************
     private void Update()
     {
+        if (Input.GetMouseButton(0))
+        {
+            checkSelected();
+        }
     }
     //*************************
 
-    public void initGameGrpahicsRenderOptions()
+    private void checkSelected()
     {
-        QualitySettings.antiAliasing = 4;
-        Application.targetFrameRate = 60;
-        QualitySettings.vSyncCount = 0;
+        RaycastHit hit;
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Debug.DrawRay(ray.origin, ray.direction * 10, Color.green);
+        if (Physics.Raycast(ray, out hit))
+        {
+            if(hit.transform.GetComponent<ISelectable>() != null)
+            {
+                hit.transform.gameObject.GetComponent<ISelectable>().select();
+            }
+
+            /*if (ExecuteEvents.CanHandleEvent<ISelectable>(hit.transform.gameObject))
+                ExecuteEvents.Execute(targetGazedObject, null, (IElement element, BaseEventData data) => element.selectElement());*/
+            // si se selecciona el objeto se manda el evento > EventManager.triggerEvent(Events.EventList.MV_Active);
+        }
     }
 
-    private void checkPause ()
-	{
-		if (currentPauseTimer >= pauseTriggerTimer) {
-			currentPauseTimer = 0;
-			isPaused = !isPaused;
-			if(isPaused) {
-				triggerPause();
-			}
-			else {
-				triggerUnPause();
-			}
-		}
-		currentPauseTimer += Time.deltaTime;
-	}
-
-	private void triggerPause() {
-		isPaused = true;
-//		SoundManager.playMusic(managerSounds.musics[0], true);
-//		SoundManager.playSFX (managerSounds.sounds[0]);
-		EventManager.triggerEvent(Events.EventList.GAMEMANAGER_Pause);
-	}
-
-	private void triggerUnPause() {
-		isPaused = false;
-//		SoundManager.playMusic (LevelManager.Instance.levelInfo.levelData.music[0], true);
-//		SoundManager.playSFX (managerSounds.sounds[0]);
-		EventManager.triggerEvent(Events.EventList.GAMEMANAGER_Continue);
-	}
+    public void initGameGrpahicsRenderOptions()
+    {
+    }
 
     private void pauseGame()
     {

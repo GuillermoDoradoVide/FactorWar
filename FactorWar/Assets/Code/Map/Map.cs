@@ -12,9 +12,6 @@ public struct BoxPosition
 
 public class Map : MonoBehaviour
 {
-    [SerializeField]
-    public MapBox[,] cells;
-    
     public const float outerRadius = 0.6f; // esto es 0.5f, pero para visualizar mejor lo he aumentado
     public const float innerRadius = outerRadius * 0.866025404f;
 
@@ -30,59 +27,64 @@ public class Map : MonoBehaviour
     [Range(5, 25)]
     public int hexagonN;
 
-    public Dictionary<Vector2, MapBox> MapHex;
+    public Dictionary<Vector3, MapBox> MapCell;
 
     public GameObject prefabTerrain;
 
+    public Unit unit;
+
     private void Start()
     {
-        MapHex = new Dictionary<Vector2, MapBox>();
+        MapCell = new Dictionary<Vector3, MapBox>();
         initMap(mapSize, mapShape);
+        MapBox aux;
+        MapCell.TryGetValue(new Vector3(5, 6, -11), out aux);
+        unit.setMapCell(aux);
+    }
+
+    private void OnEnable()
+    {
+        EventManager.Instance.AddListener<EventEntitySelect>(calculateArea);
+    }
+
+    private void OnDisable()
+    {
+        EventManager.Instance.AddListener<EventEntitySelect>(calculateArea);
     }
 
     private void initMap(MapSize mapSize, MapShape mapShape)
     {
         if (mapShape == MapShape.HEXAGON)
         {
-            cells = new MapBox[(hexagonN + size), (hexagonN + size)];
-            Debugger.printLog("MapHexSize: " + cells.Length);
             initHexagonMap();
         }
         else if (mapShape == MapShape.SQUARE)
         {
-            cells = new MapBox[size, (int)(size * 1.5)];
             initSquareMap();
         }
         else
         {
-            cells = new MapBox[size, size];
-            for (int z = 0; z < size; z++)
+            initRombMap();
+        }
+    }
+
+    public void initRombMap()
+    {
+        for (int z = 0; z < size; z++)
+        {
+            for (int x = 0; x < size; x++)
             {
-                for (int x = 0; x < size; x++)
+                int y = -z - x;
+                GameObject terrain = Instantiate(prefabTerrain);
+                terrain.transform.position = new Vector3((x + z * 0.5f) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
+                terrain.GetComponent<MapBoxScript>().mapbox.setPosition(x, y, z);
+                MapCell.Add(new Vector3(x, y, z), terrain.GetComponent<MapBoxScript>().mapbox);
+                if (terrain.GetComponentInChildren<Text>() != null)
                 {
-                    int y = -z - x;
-                    //GameObject terrain = Instantiate(prefabTerrain);
-                    // terrain.transform.position = new Vector3((x + z * 0.5f) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
-                    //terrain.GetComponent<MapBoxScript>().mapbox.setPosition(x, y, z);
-
-                    // terrain.GetComponent<MapBoxScript>().mapbox.setPosition(HexagonCell.axialToCube(new Vector2(z,x)).x, HexagonCell.axialToCube(new Vector2(z, x)).y, HexagonCell.axialToCube(new Vector2(z,x)).z);
-                    //cells[z, x + z / 2] = terrain.GetComponent<MapBoxScript>().mapbox; /* square map */
-                    //cells[(int)(z + size.y),(int)( x + size.x + (Mathf.Min(0, z)))] = terrain.GetComponent<MapBoxScript>().mapbox; /* hexagon map */
-
-                    GameObject terrain = Instantiate(prefabTerrain);
-                    terrain.transform.position = new Vector3((x + z * 0.5f) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
-                    terrain.GetComponent<MapBoxScript>().mapbox.setPosition(x, y, z);
-                    MapHex.Add(new Vector2((int)(z + size), (int)(x + size + (Mathf.Min(0, z)))), terrain.GetComponent<MapBoxScript>().mapbox);
-                    //cells[z, x] = terrain.GetComponent<MapBoxScript>().mapbox;
-                    if (terrain.GetComponentInChildren<Text>() != null)
-                    {
-                        terrain.GetComponentInChildren<Text>().text = "(" + z + "," + x + ")";
-                    }
-
+                    terrain.GetComponentInChildren<Text>().text = "(" + z + "," + x + ")";
                 }
             }
         }
-
     }
 
     public void initHexagonMap()
@@ -97,7 +99,11 @@ public class Map : MonoBehaviour
                     GameObject terrain = Instantiate(prefabTerrain);
                     terrain.transform.position = new Vector3((x + z * 0.5f) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
                     terrain.GetComponent<MapBoxScript>().mapbox.setPosition(x, y, z);
-                    MapHex.Add(new Vector2((z + size), (x + size + (Mathf.Min(0, z)))), terrain.GetComponent<MapBoxScript>().mapbox);
+                    MapCell.Add(new Vector3(x, y, z), terrain.GetComponent<MapBoxScript>().mapbox);
+                    if (terrain.GetComponentInChildren<Text>() != null)
+                    {
+                        terrain.GetComponentInChildren<Text>().text = "(" + z + "," + x + ")";
+                    }
                 }
             }
         }
@@ -116,62 +122,90 @@ public class Map : MonoBehaviour
                     GameObject terrain = Instantiate(prefabTerrain);
                     terrain.transform.position = new Vector3((x + z * 0.5f) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
                     terrain.GetComponent<MapBoxScript>().mapbox.setPosition(x, y, z);
-                    MapHex.Add(new Vector2((z + size), (x + size + (Mathf.Min(0, z)))), terrain.GetComponent<MapBoxScript>().mapbox);
+                    MapCell.Add(new Vector3(x, y, z), terrain.GetComponent<MapBoxScript>().mapbox);
+                    if (terrain.GetComponentInChildren<Text>() != null)
+                    {
+                        terrain.GetComponentInChildren<Text>().text = "(" + z + "," + x + ")";
+                    }
                 }
 
             }
         }
     }
 
-    [ContextMenu(itemName:"Area")]
-    public void calculateArea()
-    {
-        MapBox aux;
-        MapHex.TryGetValue(new Vector2(0,0), out aux);
-        
-        List<Vector3> areaToCheck = HexagonCell.hexRange(aux, vision);
-        for (int i = 0; i < areaToCheck.Count; i ++)
-        {
-            MapHex.TryGetValue(new Vector2((int)HexagonCell.cubeToAxial(areaToCheck[i]).x, (int)HexagonCell.cubeToAxial(areaToCheck[i]).y), out aux);
-            aux.GetComponent<MapBoxScript>().changeColorToGreen();
-        } 
-    }
 
-    [ContextMenu(itemName: "Obstacles")]
-    public void calculateTransitArea()
+    public void calculateArea(EventEntitySelect e)
     {
-        List<Vector3> areaToCheck = HexagonCell.hexReacheable(cells[10, 10], vision);
-        for (int i = 0; i < areaToCheck.Count; i++)
+        MapBox originCell;
+        MapCell.TryGetValue(e.UnitMapbox.cell, out originCell);
+        if(originCell!= null)
         {
-            if (cells[(int)HexagonCell.cubeToAxial(areaToCheck[i]).x, (int)HexagonCell.cubeToAxial(areaToCheck[i]).y].terrainType != MapBox.TerrainType.SIMPLE)
+            List<Vector3> areaToCheck = HexagonCell.hexRange(originCell, vision);
+            for (int i = 0; i < areaToCheck.Count; i++)
             {
-                Debugger.printLog("obstacle: " + areaToCheck[i]);
-                cells[(int)HexagonCell.cubeToAxial(areaToCheck[i]).x, (int)HexagonCell.cubeToAxial(areaToCheck[i]).y].GetComponent<MapBoxScript>().changeColorToRed();
-            }
-            else
-            {
-                Debugger.printLog(i);
-                cells[(int)HexagonCell.cubeToAxial(areaToCheck[i]).x, (int)HexagonCell.cubeToAxial(areaToCheck[i]).y].GetComponent<MapBoxScript>().changeColorToGreen();
+                MapCell.TryGetValue(areaToCheck[i], out originCell);
+                originCell.GetComponent<MapBoxScript>().changeColorToGreen();
             }
         }
-
-    }
-    [ContextMenu(itemName: "Line of sight")]
-    public void calculateLineOfSight(/*List<Vector3> rangeOfSight*/)
-    {
-        List<Vector3> line = new List<Vector3>();
-        line = HexagonCell.hexLineOfSight(cells[10, 10].cell, cells[19, 19].cell);
-        for (int i = 0; i < line.Count; i ++)
+        else
         {
-            if (cells[(int)HexagonCell.cubeToAxial(line[i]).x, (int)HexagonCell.cubeToAxial(line[i]).y].terrainType != MapBox.TerrainType.SIMPLE)
+            Debugger.printErrorLog("There is not such origin cellHexMap.");
+        }
+    }
+
+   
+    public void calculateTransitArea(Vector2 originPos)
+    {
+        MapBox originCell;
+        MapCell.TryGetValue(originPos, out originCell);
+        if (originCell != null)
+        {
+            List<Vector3> areaToCheck = HexagonCell.hexReacheable(originCell, vision);
+            for (int i = 0; i < areaToCheck.Count; i++)
             {
-                Debugger.printLog("obstacle: " + line[i]);
-                cells[(int)HexagonCell.cubeToAxial(line[i]).x, (int)HexagonCell.cubeToAxial(line[i]).y].GetComponent<MapBoxScript>().changeColorToRed();
+                MapCell.TryGetValue(new Vector2((int)HexagonCell.cubeToAxial(areaToCheck[i]).x, (int)HexagonCell.cubeToAxial(areaToCheck[i]).y), out originCell);
+                if (originCell.terrainType == MapBox.TerrainType.SIMPLE)
+                {
+                    originCell.GetComponent<MapBoxScript>().changeColorToGreen();
+                }
+                else
+                {
+                    originCell.GetComponent<MapBoxScript>().changeColorToRed();
+                }
             }
-            else
-            {
-                cells[(int)HexagonCell.cubeToAxial(line[i]).x, (int)HexagonCell.cubeToAxial(line[i]).y].GetComponent<MapBoxScript>().changeColorToGreen();
+        }
+        else
+        {
+            Debugger.printErrorLog("There is not such origin cellHexMap.");
+        }
+    }
+
+    public void calculateLineOfSight(Vector2 originPos, Vector2 destinyPos)
+    {
+        MapBox originCell;
+        MapCell.TryGetValue(originPos, out originCell);
+        MapBox destinyCell;
+        MapCell.TryGetValue(destinyPos, out destinyCell);
+        if (originCell != null && destinyCell != null)
+        {
+            List<Vector3> line = new List<Vector3>();
+            line = HexagonCell.hexLineOfSight(originCell, destinyCell);
+                for (int i = 0; i < line.Count; i++)
+                {
+                    MapCell.TryGetValue(new Vector2((int)HexagonCell.cubeToAxial(line[i]).x, (int)HexagonCell.cubeToAxial(line[i]).y), out originCell);
+                    if (originCell.terrainType == MapBox.TerrainType.SIMPLE)
+                    {
+                        originCell.GetComponent<MapBoxScript>().changeColorToGreen();
+                    }
+                    else
+                    {
+                        originCell.GetComponent<MapBoxScript>().changeColorToRed();
+                    }
             }
+        }
+        else
+        {
+            Debugger.printErrorLog("There is not such origin/destiny cellHexMaps.");
         }
     }
 

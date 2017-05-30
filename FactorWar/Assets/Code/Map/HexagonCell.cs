@@ -137,11 +137,11 @@ public static class HexagonCell
         return posibilities;
     }
 
-    public static List<Vector3> hexLineOfSight(Vector3 a, Vector3 b)
+    public static List<Vector3> hexLineOfSight(MapBox a, MapBox b)
     {
         Vector3 epsionHex = new Vector3(Mathf.Epsilon, Mathf.Epsilon, Mathf.Epsilon);
-        Vector3 newA = hexAdd(a, epsionHex);
-        Vector3 newB = hexAdd(b, epsionHex);
+        Vector3 newA = hexAdd(a.cell, epsionHex);
+        Vector3 newB = hexAdd(b.cell, epsionHex);
         float N = hexDistance(newA, newB);
         List<Vector3> vision = new List<Vector3>();
         for (int i = 0; i <= N; i++)

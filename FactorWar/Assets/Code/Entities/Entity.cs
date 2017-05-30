@@ -15,6 +15,7 @@ public class Entity : MonoBehaviour, IDamageable<int>, IKillable, ISelectable
 
     protected Transform c_transform;
     protected GameObject c_gameObject;
+    protected MapBox unitCellPosition;
 
 	// Use this for initialization
 	private void Start () {
@@ -31,16 +32,34 @@ public class Entity : MonoBehaviour, IDamageable<int>, IKillable, ISelectable
             Debugger.printErrorLog("'" + name + "' doesn't have a <AnimatorManager(Script)> COMPONENT.");
         }
     }
-	
-	// Update is called once per frame
-	private void Update () {
+
+    // Update is called once per frame
+    private void Update () {
 		
 	}
+
+    // CELL
+
+    public void setMapCell(MapBox mapBox)
+    {
+        if(mapBox != null)
+        {
+            unitCellPosition = mapBox;
+        }
+        else
+        {
+            Debugger.printErrorLog("not a cell map element asigned to this <" + name + "> unit");
+        }
+    }
 
     // INTERFACES
     public void select()
     {
         // EVENT TRIGGER, UNIT SELECTED
+        if(unitCellPosition != null)
+        {
+            EventManager.Instance.TriggerEvent(new EventEntitySelect(unitCellPosition));
+        }
     }
 
     public void damaged(int damagePoints)

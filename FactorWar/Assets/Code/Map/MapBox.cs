@@ -16,6 +16,9 @@ public class MapBox : MonoBehaviour {
     public Entity entity;
     public Vector3 cell;
 
+    //provisional
+    public Map map;
+
     public Material[] greenMaterial;
     public Material[] redMaterial;
 
