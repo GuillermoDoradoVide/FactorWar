@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Entity : MonoBehaviour, IDamageable<int>, IKillable, ISelectable
+public abstract class Entity : MonoBehaviour, IDamageable<int>, IKillable, ISelectable
 {
 
     public enum EntityType {UNIT, STRUCTURE, DECORATION};
@@ -53,14 +53,7 @@ public class Entity : MonoBehaviour, IDamageable<int>, IKillable, ISelectable
     }
 
     // INTERFACES
-    public void select()
-    {
-        // EVENT TRIGGER, UNIT SELECTED
-        if(unitCellPosition != null)
-        {
-            EventManager.Instance.TriggerEvent(new EventEntitySelect(unitCellPosition));
-        }
-    }
+    public abstract void select();
 
     public void damaged(int damagePoints)
     {

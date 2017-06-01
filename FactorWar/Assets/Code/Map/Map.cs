@@ -12,16 +12,13 @@ public struct BoxPosition
 
 public class Map : MonoBehaviour
 {
+    public MapData mapData;
     public const float outerRadius = 0.6f; // esto es 0.5f, pero para visualizar mejor lo he aumentado
     public const float innerRadius = outerRadius * 0.866025404f;
 
     [Header("Area")]
     public int vision;
     public int range;
-    public enum MapSize { SMALL, MEDIUM };
-    public MapSize mapSize;
-    public enum MapShape { NORMAL, SQUARE, HEXAGON };
-    public MapShape mapShape;
     [Range(5,25)]
     public int size;
     [Range(5, 25)]
@@ -30,35 +27,40 @@ public class Map : MonoBehaviour
     public Dictionary<Vector3, MapBox> MapCell;
 
     public GameObject prefabTerrain;
+    public GameObject prefabTree;
+    public GameObject prefabRock;
 
     public Unit unit;
 
     private void Start()
     {
+        mapData.init();
         MapCell = new Dictionary<Vector3, MapBox>();
-        initMap(mapSize, mapShape);
+        initMap(mapData.mapShape);
+        //PROVISIONAL
         MapBox aux;
         MapCell.TryGetValue(new Vector3(5, 6, -11), out aux);
         unit.setMapCell(aux);
+        initData();
     }
 
     private void OnEnable()
     {
-        EventManager.Instance.AddListener<EventEntitySelect>(calculateArea);
+        EventManager.Instance.AddListener<EventEntitySelected>(calculateArea);
     }
 
     private void OnDisable()
     {
-        EventManager.Instance.AddListener<EventEntitySelect>(calculateArea);
+        EventManager.Instance.AddListener<EventEntitySelected>(calculateArea);
     }
 
-    private void initMap(MapSize mapSize, MapShape mapShape)
+    private void initMap(MapData.MapShape mapShape)
     {
-        if (mapShape == MapShape.HEXAGON)
+        if (mapShape == MapData.MapShape.HEXAGON)
         {
             initHexagonMap();
         }
-        else if (mapShape == MapShape.SQUARE)
+        else if (mapShape == MapData.MapShape.SQUARE)
         {
             initSquareMap();
         }
@@ -123,6 +125,20 @@ public class Map : MonoBehaviour
                     terrain.transform.position = new Vector3((x + z * 0.5f) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
                     terrain.GetComponent<MapBoxScript>().mapbox.setPosition(x, y, z);
                     MapCell.Add(new Vector3(x, y, z), terrain.GetComponent<MapBoxScript>().mapbox);
+                    /*
+                    if (mapData.terrainType[x, z] == 3)
+                    {
+                        GameObject tree = Instantiate(prefabTree);
+                        tree.transform.SetParent(terrain.transform);
+                        tree.transform.position = new Vector3(0, 0, 0);
+                    }
+
+                    if (mapData.terrainType[x, z] == 4)
+                    {
+                        GameObject rock = Instantiate(prefabRock);
+                        rock.transform.SetParent(terrain.transform);
+                        rock.transform.position = new Vector3(0, 0, 0);
+                    }*/
                     if (terrain.GetComponentInChildren<Text>() != null)
                     {
                         terrain.GetComponentInChildren<Text>().text = "(" + z + "," + x + ")";
@@ -133,8 +149,12 @@ public class Map : MonoBehaviour
         }
     }
 
+    private void initData()
+    {
+    }
 
-    public void calculateArea(EventEntitySelect e)
+
+    public void calculateArea(EventEntitySelected e)
     {
         MapBox originCell;
         MapCell.TryGetValue(e.UnitMapbox.cell, out originCell);

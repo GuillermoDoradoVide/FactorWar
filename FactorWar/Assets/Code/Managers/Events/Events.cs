@@ -9,13 +9,26 @@ public class GameEvent
 ///<summary>
 /// Raised when a dialog option is selected.
 /// </summary>
-public class EventEntitySelect : GameEvent
+public class EventEntitySelected : GameEvent
 {
     private MapBox unitMapbox;
     public MapBox UnitMapbox { get { return unitMapbox; } }
-    public EventEntitySelect(MapBox mapbox)
+    public EventEntitySelected(MapBox mapbox)
     {
         unitMapbox = mapbox;
+    }
+}
+
+///<summary>
+/// Raised when a dialog option is selected.
+/// </summary>
+public class EventEntityAttack : GameEvent
+{
+    private int damage;
+    public int Damage { get { return damage; } }
+    public EventEntityAttack(int damageAmount)
+    {
+        damage = damageAmount;
     }
 }
 

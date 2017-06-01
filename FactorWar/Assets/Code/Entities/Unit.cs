@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Unit : Entity {
+public class Unit : Entity, ICanAttack {
+
+    [Header("Unit Base Stats")]
+    public int ActionPoints;
+    public int movementRange;
 
     [Header("Unit Animation")]
     public bool isIdle;
@@ -26,5 +30,21 @@ public class Unit : Entity {
     private void Update ()
     {
 	}
+
+    public void attack()
+    {
+        EventManager.Instance.TriggerEvent(new EventEntityAttack(2));
+    }
+
+    public override void select()
+    {
+        // EVENT TRIGGER, UNIT SELECTED
+        if (unitCellPosition != null)
+        {
+            EventManager.Instance.TriggerEvent(new EventEntitySelected(unitCellPosition));
+        }
+    }
+
+
 
 }
