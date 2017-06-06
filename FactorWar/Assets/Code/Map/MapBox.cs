@@ -6,7 +6,7 @@ using System.IO;
 public class MapBox : MonoBehaviour {
     [Header("Terrain Type")]
     public TerrainType terrainType;
-    public int[,] terrainCell;
+    public int terrainCell;
     public bool occupied;
     public Vector3 cell;
 
@@ -37,20 +37,19 @@ public class MapBox : MonoBehaviour {
 
     private void Awake()
     {
-        terrainCell = new int[1, 1];
     }
 
     private void loadTerrainDetails()
     {
         if (terrainType == TerrainType.SIMPLE)
         {
-            GameObject terrainDetail = Instantiate(terrainPrefabs.Simple[Random.Range(0, 2)]);
+            GameObject terrainDetail = Instantiate(terrainPrefabs.Simple[terrainCell]);
             terrainDetail.transform.SetParent(transform);
             terrainDetail.transform.localPosition = new Vector3(0, 0, 0);
         }
         else
         {
-            GameObject terrainDetail = Instantiate(terrainPrefabs.Blocked[Random.Range(0, 2)]);
+            GameObject terrainDetail = Instantiate(terrainPrefabs.Blocked[terrainCell]);
             terrainDetail.transform.SetParent(transform);
             terrainDetail.transform.localPosition = new Vector3(0, 0, 0);
         }
@@ -110,6 +109,7 @@ public class MapBox : MonoBehaviour {
     public void Save (BinaryWriter writer)
     {
         writer.Write((byte)terrainType);
+        writer.Write((byte)terrainCell);
         writer.Write(occupied);
         
     }
@@ -117,8 +117,10 @@ public class MapBox : MonoBehaviour {
     public void Load(BinaryReader reader)
     {
         terrainType = (TerrainType)reader.ReadByte();
+        terrainCell = reader.ReadByte();
         occupied = reader.ReadBoolean();
         loadTerrainDetails();
+        Debugger.printLog(terrainType + "::" + terrainCell);
     }
 
     public void calculateArea(EventEntitySelected e)

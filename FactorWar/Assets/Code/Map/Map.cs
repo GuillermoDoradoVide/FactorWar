@@ -200,6 +200,7 @@ public class Map : MonoBehaviour
     public void Load(BinaryReader reader)
     {
         CreateMap((MapShape)reader.ReadByte(), (MapSize)reader.ReadByte());
+        Debugger.printLog((MapShape)reader.ReadByte() + "::" + (MapSize)reader.ReadByte());
         var enumerator = MapCell.GetEnumerator();
         while (enumerator.MoveNext())
         {

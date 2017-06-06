@@ -110,10 +110,12 @@
     <Compile Include="Assets\Code\Map\MapBoxScript.cs" />
     <Compile Include="Assets\Code\Map\MapData.cs" />
     <Compile Include="Assets\Code\Map\MapEditor.cs" />
+    <Compile Include="Assets\Code\Map\MapEditor\SaveLoadItem.cs" />
     <Compile Include="Assets\Code\Map\MapEnums.cs" />
     <Compile Include="Assets\Code\Map\Province.cs" />
     <Compile Include="Assets\Code\Map\Region.cs" />
     <Compile Include="Assets\Code\Map\Regions\Provinces\Maps\Cells\MapBoxPrefabs.cs" />
+    <Compile Include="Assets\Code\Map\SaveLoadMap.cs" />
     <Compile Include="Assets\Code\Player\PlayerController.cs" />
     <Compile Include="Assets\Code\StateMachine\CombatState.cs" />
     <Compile Include="Assets\Code\StateMachine\CombatStates\EndCombatState.cs" />
