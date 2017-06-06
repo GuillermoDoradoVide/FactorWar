@@ -4,12 +4,6 @@ using UnityEngine;
 
 public class MapData : MonoBehaviour {
 
-    public enum MapSize { SMALL, MEDIUM, BIG };
-    public MapSize mapSize;
-    public enum MapShape { NORMAL, SQUARE, HEXAGON };
-    public MapShape mapShape;
-
-    public GameObject[][] prefabs;
     [System.Serializable]
     public enum CellType {SIMPLE, OBSTACLE, TREES, ROCK, RIVER, HOLE }
     public CellType cellType;
@@ -27,5 +21,11 @@ public class MapData : MonoBehaviour {
             }
         }
     }
+
+    public void SetTerrainType() {
+
+    }
+
+
 
 }

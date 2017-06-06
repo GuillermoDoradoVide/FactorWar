@@ -6,12 +6,15 @@ using System.IO;
 public class MapBox : MonoBehaviour {
     [Header("Terrain Type")]
     public TerrainType terrainType;
+    public int[,] terrainCell;
     public bool occupied;
     public Vector3 cell;
 
     private MapBoxCoordinates mapBoxCoordinates;
     public Material[] greenMaterial;
     public Material[] redMaterial;
+
+    public MapBoxPrefabs terrainPrefabs;
 
     //provisional
     //public Map map;
@@ -30,6 +33,27 @@ public class MapBox : MonoBehaviour {
     private void OnDisable()
     {
         EventManager.Instance.RemoveListener<EventEntitySelected>(calculateArea);
+    }
+
+    private void Awake()
+    {
+        terrainCell = new int[1, 1];
+    }
+
+    private void loadTerrainDetails()
+    {
+        if (terrainType == TerrainType.SIMPLE)
+        {
+            GameObject terrainDetail = Instantiate(terrainPrefabs.Simple[Random.Range(0, 2)]);
+            terrainDetail.transform.SetParent(transform);
+            terrainDetail.transform.localPosition = new Vector3(0, 0, 0);
+        }
+        else
+        {
+            GameObject terrainDetail = Instantiate(terrainPrefabs.Blocked[Random.Range(0, 2)]);
+            terrainDetail.transform.SetParent(transform);
+            terrainDetail.transform.localPosition = new Vector3(0, 0, 0);
+        }
     }
 
     public void setPosition(int newX, int newZ)
@@ -94,6 +118,7 @@ public class MapBox : MonoBehaviour {
     {
         terrainType = (TerrainType)reader.ReadByte();
         occupied = reader.ReadBoolean();
+        loadTerrainDetails();
     }
 
     public void calculateArea(EventEntitySelected e)

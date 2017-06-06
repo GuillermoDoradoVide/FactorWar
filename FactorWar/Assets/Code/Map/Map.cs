@@ -6,14 +6,11 @@ using System.IO;
 
 public class Map : MonoBehaviour
 {
-    public MapData mapData;
+    MapShape mapShape;
+    MapSize mapSize;
     public const float outerRadius = 0.5f; // esto es 0.5f, pero para visualizar mejor lo he aumentado
     public const float innerRadius = outerRadius * 0.866025404f;
-
-    [Range(5,25)]
-    public int size;
-    [Range(5, 25)]
-    public int hexagonN;
+    private int size;
 
     public Dictionary<Vector2, MapBox> MapCell;
 
@@ -25,38 +22,83 @@ public class Map : MonoBehaviour
 
     private void Awake()
     {
-        mapData.init();
         MapCell = new Dictionary<Vector2, MapBox>();
-        CreateMap(mapData.mapShape);
+        CreateMap(mapShape, mapSize);
         //PROVISIONAL
         MapBox aux;
         MapCell.TryGetValue(new Vector2(2, 2), out aux);
         unit.setMapCell(aux);
     }
 
-    private void Start()
+    public void setsize(int newSize)
     {
-
+        switch(newSize) {
+            case 0:
+                {
+                    mapSize = MapSize.SMALL;
+                    break;
+                }
+            case 1:
+                {
+                    mapSize = MapSize.MEDIUM;
+                    break;
+                }
+            case 2:
+                {
+                    mapSize = MapSize.BIG;
+                    break;
+                }
+        }
     }
 
-    private void OnEnable()
+    public void setShape(int newShape)
     {
-
+        switch (newShape)
+        {
+            case 0:
+                {
+                    mapShape = MapShape.HEXAGON;
+                    break;
+                }
+            case 1:
+                {
+                    mapShape = MapShape.SQUARE;
+                    break;
+                }
+            case 2:
+                {
+                    mapShape = MapShape.NORMAL;
+                    break;
+                }
+        }
     }
 
-    private void OnDisable()
+    public void createNewMap()
     {
-
+        CreateMap(mapShape, mapSize);
     }
 
-    private void CreateMap(MapData.MapShape mapShape)
+    private void CreateMap(MapShape mapShape, MapSize mapSize)
     {
         clearMap();
-        if (mapShape == MapData.MapShape.HEXAGON)
+        if (mapSize == MapSize.BIG)
+        {
+            size = 25;
+        }
+        else if (mapSize == MapSize.MEDIUM)
+        {
+            size = 15;
+        }
+        else
+        {
+            size = 7;
+        }
+
+        if (mapShape == MapShape.HEXAGON)
         {
             initHexagonMap();
         }
-        else if (mapShape == MapData.MapShape.SQUARE)
+        else if (mapShape == MapShape.SQUARE)
         {
             initSquareMap();
         }
@@ -74,7 +116,9 @@ public class Map : MonoBehaviour
             while (enumerator.MoveNext())
             {
                 Destroy(enumerator.Current.Value.gameObject);
+                
             }
+            MapCell.Clear();
         }
     }
 
@@ -98,12 +142,12 @@ public class Map : MonoBehaviour
 
     public void initHexagonMap()
     {
-        for (int z = -hexagonN; z < hexagonN; z++)
+        for (int z = -size; z < size; z++)
         {
-            for (int x = -hexagonN; x < hexagonN; x++)
+            for (int x = -size; x < size; x++)
             {
                 int y = -x - z;
-                if (Mathf.Abs(y) <= hexagonN)
+                if (Mathf.Abs(y) <= size)
                 {
                     GameObject terrain = Instantiate(prefabTerrain);
                     terrain.transform.position = new Vector3((x + z * 0.5f) * (innerRadius * 2f), 0, z * (outerRadius * 1.5f));
@@ -142,13 +186,10 @@ public class Map : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-
-    }
-
     public void Save(BinaryWriter writer)
     {
+        writer.Write((byte)mapSize);
+        writer.Write((byte)mapShape);
         var enumerator = MapCell.GetEnumerator();
         while (enumerator.MoveNext())
         {
@@ -158,6 +199,7 @@ public class Map : MonoBehaviour
 
     public void Load(BinaryReader reader)
     {
+        CreateMap((MapShape)reader.ReadByte(), (MapSize)reader.ReadByte());
         var enumerator = MapCell.GetEnumerator();
         while (enumerator.MoveNext())
         {
