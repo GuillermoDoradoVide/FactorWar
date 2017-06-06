@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2017
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FactorWar", "FactorWar.csproj", "{A83E9114-A7C3-389B-62B0-65DF7679EF2C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FactorWar.Editor", "FactorWar.Editor.csproj", "{8EDA8883-F0AC-DE06-836E-A0F10E54E644}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{A83E9114-A7C3-389B-62B0-65DF7679EF2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A83E9114-A7C3-389B-62B0-65DF7679EF2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A83E9114-A7C3-389B-62B0-65DF7679EF2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EDA8883-F0AC-DE06-836E-A0F10E54E644}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EDA8883-F0AC-DE06-836E-A0F10E54E644}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EDA8883-F0AC-DE06-836E-A0F10E54E644}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EDA8883-F0AC-DE06-836E-A0F10E54E644}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

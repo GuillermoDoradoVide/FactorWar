@@ -106,10 +106,13 @@
     <Compile Include="Assets\Code\Map\HexagonCell.cs" />
     <Compile Include="Assets\Code\Map\Map.cs" />
     <Compile Include="Assets\Code\Map\MapBox.cs" />
+    <Compile Include="Assets\Code\Map\MapBoxCoordinates.cs" />
     <Compile Include="Assets\Code\Map\MapBoxScript.cs" />
     <Compile Include="Assets\Code\Map\MapData.cs" />
+    <Compile Include="Assets\Code\Map\MapEditor.cs" />
     <Compile Include="Assets\Code\Map\Province.cs" />
     <Compile Include="Assets\Code\Map\Region.cs" />
+    <Compile Include="Assets\Code\Player\PlayerController.cs" />
     <Compile Include="Assets\Code\StateMachine\CombatState.cs" />
     <Compile Include="Assets\Code\StateMachine\CombatStates\EndCombatState.cs" />
     <Compile Include="Assets\Code\StateMachine\CombatStates\EndEnemyTurn.cs" />

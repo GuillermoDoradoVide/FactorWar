@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
 [System.Serializable]
 public class MapBox : MonoBehaviour {
     public enum TerrainType {SIMPLE, BLOCKED , OBSTACLE };
@@ -11,10 +12,12 @@ public class MapBox : MonoBehaviour {
     [SerializeField]
     private Material[] materials;
     [SerializeField]
-    private BoxPosition boxPosition;
+    private MapBoxCoordinates mapBoxCoordinates;
     public bool occupied;
     public Entity entity;
     public Vector3 cell;
+
+    public int elevation;
 
     //provisional
     public Map map;
@@ -22,19 +25,18 @@ public class MapBox : MonoBehaviour {
     public Material[] greenMaterial;
     public Material[] redMaterial;
 
-    public void setPosition(float newX, float newY, float newZ)
+    public void setPosition(int newX, int newZ)
     {
-        boxPosition.xPos = newX;
-        boxPosition.yPos = newY;
-        boxPosition.zPos = newZ;
+        mapBoxCoordinates.xPos = newX;
+        mapBoxCoordinates.zPos = newZ;
         cell.x = newX;
-        cell.y = newY;
+        cell.y = mapBoxCoordinates.yPos;
         cell.z = newZ;
     }
 
-    public BoxPosition getPosition()
+    public MapBoxCoordinates getPosition()
     {
-        return boxPosition;
+        return mapBoxCoordinates;
     }
 
     public void setEntity(Entity newEntity)
@@ -72,5 +74,18 @@ public class MapBox : MonoBehaviour {
     public Material[] changeColorGreen()
     {
         return greenMaterial;
+    }
+
+    public void Save (BinaryWriter writer)
+    {
+        writer.Write((byte)terrainType);
+        writer.Write(occupied);
+        
+    }
+
+    public void Load(BinaryReader reader)
+    {
+        terrainType = (TerrainType)reader.ReadByte();
+        occupied = reader.ReadBoolean();
     }
 }
