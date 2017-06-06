@@ -41,7 +41,7 @@ public class Unit : Entity, ICanAttack {
         // EVENT TRIGGER, UNIT SELECTED
         if (unitCellPosition != null)
         {
-            EventManager.Instance.TriggerEvent(new EventEntitySelected(unitCellPosition));
+            EventManager.Instance.TriggerEvent(new EventEntitySelected(unitCellPosition, movementRange));
         }
     }
 

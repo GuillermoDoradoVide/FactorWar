@@ -14,8 +14,8 @@ public class MapBoxScript : MonoBehaviour {
         mapbox = GetComponent<MapBox>();
         meshRenderer = GetComponent<MeshRenderer>();
         meshFilter = GetComponent<MeshFilter>();
-        meshFilter.mesh = mapbox.getMesh();
-        meshRenderer.materials = mapbox.getMaterials();
+        //meshFilter.mesh = mapbox.getMesh();
+        //meshRenderer.materials = mapbox.getMaterials();
         cell = mapbox.cell;
     }
 

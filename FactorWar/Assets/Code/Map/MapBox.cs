@@ -4,26 +4,33 @@ using UnityEngine;
 using System.IO;
 [System.Serializable]
 public class MapBox : MonoBehaviour {
-    public enum TerrainType {SIMPLE, BLOCKED , OBSTACLE };
     [Header("Terrain Type")]
     public TerrainType terrainType;
-    [SerializeField]
-    private Mesh mesh;
-    [SerializeField]
-    private Material[] materials;
-    [SerializeField]
-    private MapBoxCoordinates mapBoxCoordinates;
     public bool occupied;
-    public Entity entity;
     public Vector3 cell;
 
-    public int elevation;
-
-    //provisional
-    public Map map;
-
+    private MapBoxCoordinates mapBoxCoordinates;
     public Material[] greenMaterial;
     public Material[] redMaterial;
+
+    //provisional
+    //public Map map;
+
+    // public Entity entity;
+
+    // private Mesh mesh;
+    // [SerializeField]
+    // private Material[] materials;
+
+    private void OnEnable()
+    {
+        EventManager.Instance.AddListener<EventEntitySelected>(calculateArea);
+    }
+
+    private void OnDisable()
+    {
+        EventManager.Instance.RemoveListener<EventEntitySelected>(calculateArea);
+    }
 
     public void setPosition(int newX, int newZ)
     {
@@ -42,7 +49,7 @@ public class MapBox : MonoBehaviour {
     public void setEntity(Entity newEntity)
     {
         // If the object can be placed in blocked terrain, then yes (INTERFACE)
-        entity = newEntity;
+        //entity = newEntity;
         setOccupiedTrue();
     }
 
@@ -55,7 +62,7 @@ public class MapBox : MonoBehaviour {
     {
         occupied = false;
     }
-
+    /*
     public Mesh getMesh()
     {
         return mesh;
@@ -64,7 +71,7 @@ public class MapBox : MonoBehaviour {
     public Material[] getMaterials()
     {
         return materials;
-    }
+    }*/
 
     public Material[] changeColorRed()
     {
@@ -88,4 +95,11 @@ public class MapBox : MonoBehaviour {
         terrainType = (TerrainType)reader.ReadByte();
         occupied = reader.ReadBoolean();
     }
+
+    public void calculateArea(EventEntitySelected e)
+    {
+        List<Vector3> areaToCheck = HexagonCell.hexRange(this, e.AttackVisionRange);
+    }
+
+
 }

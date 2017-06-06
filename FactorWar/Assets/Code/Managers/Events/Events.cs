@@ -13,9 +13,12 @@ public class EventEntitySelected : GameEvent
 {
     private MapBox unitMapbox;
     public MapBox UnitMapbox { get { return unitMapbox; } }
-    public EventEntitySelected(MapBox mapbox)
+    private int attackVisionRange;
+    public int AttackVisionRange { get { return attackVisionRange; } }
+    public EventEntitySelected(MapBox mapbox, int vision)
     {
         unitMapbox = mapbox;
+        attackVisionRange = vision;
     }
 }
 

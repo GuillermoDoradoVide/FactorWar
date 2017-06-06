@@ -110,6 +110,7 @@
     <Compile Include="Assets\Code\Map\MapBoxScript.cs" />
     <Compile Include="Assets\Code\Map\MapData.cs" />
     <Compile Include="Assets\Code\Map\MapEditor.cs" />
+    <Compile Include="Assets\Code\Map\MapEnums.cs" />
     <Compile Include="Assets\Code\Map\Province.cs" />
     <Compile Include="Assets\Code\Map\Region.cs" />
     <Compile Include="Assets\Code\Player\PlayerController.cs" />
