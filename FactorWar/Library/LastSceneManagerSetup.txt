@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/MapTest.unity
+- path: Assets/SCENES/Test Realm/Test Map Generator.unity
   isLoaded: 1
   isActive: 1
