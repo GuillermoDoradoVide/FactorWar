@@ -116,7 +116,7 @@ public class MapBox : MonoBehaviour {
 
     public void calculateArea(EventEntitySelected e)
     {
-        List<Vector3> areaToCheck = HexagonCell.hexRange(this, e.AttackVisionRange);
+        //List<Vector3> areaToCheck = HexagonCell.hexRange(this, e.AttackVisionRange);
     }
 
 

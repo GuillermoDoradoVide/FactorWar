@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/SCENES/Test Realm/Test Map Generator.unity
+- path: Assets/Plugins/unity-hexagonal-grids-master/Assets/Example/ExampleScene.unity
   isLoaded: 1
   isActive: 1
