@@ -2,37 +2,39 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HexAlgorithms : MonoBehaviour {
+public class HexGrid : MonoBehaviour {
 
-    private static Dictionary<string, Dictionary<Vector3, HexagonCell>> _hexContainers = new Dictionary<string, Dictionary<Vector3, HexagonCell>>();
+    private  Dictionary<string, Dictionary<Vector3, HexagonCell>> _hexContainers = new Dictionary<string, Dictionary<Vector3, HexagonCell>>();
 
-    private static Vector3[] _cubeDirections = new Vector3[]
+    private GameObject _hexGrid;
+
+    private  Vector3[] _cubeDirections = new Vector3[]
     {
         new Vector3(1, -1, 0), new Vector3(1, 0, -1), new Vector3(0, 1, -1),
         new Vector3(-1, 1, 0), new Vector3(-1, 0, 1), new Vector3(0, -1, 1)
     };
 
-    private static Vector3[] _cubeDiagonalDirections = new Vector3[]
+    private  Vector3[] _cubeDiagonalDirections = new Vector3[]
     {
         new Vector3(2, -1, -1), new Vector3(1, 1, -2), new Vector3(-1, 2, -1),
         new Vector3(-2, 1, 1), new Vector3(-1, -1, 2), new Vector3(1, -2, 1)
     };
 
-    private static float _gameScale = 1.0f;
-    private static float _hexRadius = 1.0f;
+    private  float _gameScale = 1.0f;
+    private  float _hexRadius = 1.0f;
 
-    private static float _hexWidth = 0.0f;
-    private static float _hexHeight = 0.0f;
+    private  float _hexWidth = 0.0f;
+    private  float _hexHeight = 0.0f;
 
-    private static float _hexSpacingVertical = 0.0f;
-    private static float _hexSpacingHorizontal = 0.0f;
+    private  float _hexSpacingVertical = 0.0f;
+    private  float _hexSpacingHorizontal = 0.0f;
 
     private void Awake()
     {
         CalculateHexagonCellDimensions();
     }
 
-    private static void CalculateHexagonCellDimensions()
+    private  void CalculateHexagonCellDimensions()
     {
         _hexRadius = _hexRadius * _gameScale;
 
@@ -41,6 +43,88 @@ public class HexAlgorithms : MonoBehaviour {
 
         _hexHeight = (Mathf.Sqrt(3) / 2.0f) * _hexWidth;
         _hexSpacingVertical = _hexHeight / 2.0f;
+
+        HexGridManager.Instance.SetRadius(_hexRadius);
+    }
+
+    /// <summary>
+    /// // Constructs new set of coordinates from 0,0,0 given a radius
+    /// </summary>
+    /// <param name="radius"></param>
+    public void ConstructHexGrid(int radius)
+    {
+        Clear();
+        _hexGrid = new GameObject("HexGridMatrix");
+
+        for (int x = -radius; x <= radius; x++)
+            for (int y = -radius; y <= radius; y++)
+                for (int z = -radius; z <= radius; z++)
+                    if ((x + y + z) == 0)
+                        AddCube(new Vector3(x, y, z));
+    }
+
+    /// <summary>
+    /// // Destroys all coordinates and entries
+    /// </summary>
+    private void Clear()
+    {
+        Destroy(_hexGrid);
+        ClearAllHexContainers();
+    }
+
+    /// <summary>
+    /// // Creates a Coordinate GameObject for a given cube coordinate
+    /// </summary>
+    /// <param name="cube"></param>
+    public void AddCube(Vector3 cube)
+    {
+        if (GetHexagonCellFromContainer(cube, "all") != null)
+            return;
+
+        GameObject obj = new GameObject("HexagonCell: [" + cube.x + "," + cube.y + "," + cube.z + "]");
+        obj.transform.parent = _hexGrid.transform;
+
+        HexagonCell hexagonCell = obj.AddComponent<HexagonCell>();
+        hexagonCell.InitHexagonCell(
+            cube,
+            CubeToWorldPosition(cube)
+        );
+
+        AddHexagonCellToContainer(hexagonCell, "all");
+    }
+
+    /// <summary>
+    /// // Creates a set of Coordinate GameObjects for a given list of cube coordinates
+    /// </summary>
+    /// <param name="cubes"></param>
+    public void AddCubes(List<Vector3> cubes)
+    {
+        foreach (Vector3 cube in cubes)
+            AddCube(cube);
+    }
+
+    /// <summary>
+    /// // Removes and destroys a Coordinate for a given cube coordinate
+    /// </summary>
+    /// <param name="cube"></param>
+    public void RemoveCube(Vector3 cube)
+    {
+        HexagonCell hexagonCell = GetHexagonCellFromContainer(cube, "all");
+        if (hexagonCell == null)
+            return;
+
+        RemoveHexagonCellFromAllContainers(hexagonCell);
+        Destroy(hexagonCell.gameObject);
+    }
+
+    /// <summary>
+    /// // Removes and destroys a set of Coordinates for a given list of cube coordinates
+    /// </summary>
+    /// <param name="cubes"></param>
+    public void RemoveCubes(List<Vector3> cubes)
+    {
+        foreach (Vector3 cube in cubes)
+            RemoveCube(cube);
     }
 
     /// <summary>
@@ -48,7 +132,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cube"></param>
     /// <returns></returns>
-    public static Vector2 CubeToAxial(Vector3 cube)
+    public  Vector2 CubeToAxial(Vector3 cube)
     {
         return (new Vector2(cube.x, cube.z));
     }
@@ -57,7 +141,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cube"></param>
     /// <returns></returns>
-    public static Vector3 AxialToCube(Vector2 axial)
+    public  Vector3 AxialToCube(Vector2 axial)
     {
         return (new Vector3(axial.x, -axial.x - axial.y, axial.y));
     }
@@ -67,7 +151,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cube"></param>
     /// <returns></returns>
-    public static Vector3 AxialToWorldPosition(Vector2 axial)
+    public  Vector3 AxialToWorldPosition(Vector2 axial)
     {
         float x = axial.x * _hexSpacingHorizontal;
         float z = -((axial.x * _hexSpacingVertical) + (axial.y * _hexSpacingVertical * 2.0f));
@@ -79,7 +163,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cube"></param>
     /// <returns></returns>
-    public static Vector3 CubeToWorldPosition(Vector3 cube)
+    public  Vector3 CubeToWorldPosition(Vector3 cube)
     {
         float x = cube.x * _hexSpacingHorizontal;
         float y = 0.0f;
@@ -92,7 +176,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cube"></param>
     /// <returns></returns>
-    public static Vector2 WorldPositionToAxial(Vector3 wPos)
+    public  Vector2 WorldPositionToAxial(Vector3 wPos)
     {
         float q = (wPos.x * (2.0f / 3.0f)) / _hexRadius;
         float r = ((-wPos.x / 3.0f) + ((Mathf.Sqrt(3) / 3.0f) * wPos.z)) / _hexRadius;
@@ -103,7 +187,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cube"></param>
     /// <returns></returns>
-    public static Vector3 WorldPositionToCube(Vector3 wPos)
+    public  Vector3 WorldPositionToCube(Vector3 wPos)
     {
         return AxialToCube(WorldPositionToAxial(wPos));
     }
@@ -112,7 +196,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cube"></param>
     /// <returns></returns>
-    public static Vector2 RoundAxial(Vector2 axial)
+    public  Vector2 RoundAxial(Vector2 axial)
     {
         return RoundCube(AxialToCube(axial));
     }
@@ -121,7 +205,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cube"></param>
     /// <returns></returns>
-    public static Vector3 RoundCube(Vector3 coord)
+    public  Vector3 RoundCube(Vector3 coord)
     {
         float rx = Mathf.Round(coord.x);
         float ry = Mathf.Round(coord.y);
@@ -146,7 +230,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="direction"></param>
     /// <returns></returns>
-    public static Vector3 GetCubeDirection(int direction)
+    public  Vector3 GetCubeDirection(int direction)
     {
         return _cubeDirections[direction];
     }
@@ -156,7 +240,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="direction"></param>
     /// <returns></returns>
-    public static Vector3 GetCubeDiagonalDirection(int direction)
+    public  Vector3 GetCubeDiagonalDirection(int direction)
     {
         return _cubeDiagonalDirections[direction];
     }
@@ -167,7 +251,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="cube"></param>
     /// <param name="direction"></param>
     /// <returns></returns>
-    public static Vector3 GetNeighborCube(Vector3 cube, int direction)
+    public  Vector3 GetNeighborCube(Vector3 cube, int direction)
     {
         return GetNeighborCube(cube, direction, 1);
     }
@@ -179,7 +263,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="direction"></param>
     /// <param name="distance"></param>
     /// <returns></returns>
-    public static Vector3 GetNeighborCube(Vector3 cube, int direction, int distance)
+    public  Vector3 GetNeighborCube(Vector3 cube, int direction, int distance)
     {
         return cube + (GetCubeDirection(direction) * (float)distance);
     }
@@ -188,7 +272,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cube"></param>
     /// <returns></returns>
-    public static List<Vector3> GetNeighborCubes(Vector3 cube)
+    public  List<Vector3> GetNeighborCubes(Vector3 cube)
     {
         return GetNeighborCubes(cube, 1);
     }
@@ -200,7 +284,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="radius"></param>
     /// <param name="cleanResults"></param>
     /// <returns></returns>
-    public static List<Vector3> GetNeighborCubes(Vector3 cube, int radius, bool cleanResults = true)
+    public  List<Vector3> GetNeighborCubes(Vector3 cube, int radius, bool cleanResults = true)
     {
         List<Vector3> cubes = new List<Vector3>();
 
@@ -222,7 +306,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="cube"></param>
     /// <param name="direction"></param>
     /// <returns></returns>
-    public static Vector3 GetDiagonalNeighborCube(Vector3 cube, int direction)
+    public  Vector3 GetDiagonalNeighborCube(Vector3 cube, int direction)
     {
         return cube + GetCubeDiagonalDirection(direction);
     }
@@ -234,7 +318,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="direction"></param>
     /// <param name="distance"></param>
     /// <returns></returns>
-    public static Vector3 GetDiagonalNeighborCube(Vector3 cube, int direction, int distance)
+    public  Vector3 GetDiagonalNeighborCube(Vector3 cube, int direction, int distance)
     {
         return cube + (GetCubeDiagonalDirection(direction) * (float)distance);
     }
@@ -244,7 +328,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cube"></param>
     /// <returns></returns>
-    public static List<Vector3> GetDiagonalNeighborCubes(Vector3 cube)
+    public  List<Vector3> GetDiagonalNeighborCubes(Vector3 cube)
     {
         return GetDiagonalNeighborCubes(cube, 1);
     }
@@ -256,7 +340,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="distance"></param>
     /// <param name="cleanResults"></param>
     /// <returns></returns>
-    public static List<Vector3> GetDiagonalNeighborCubes(Vector3 cube, int distance, bool cleanResults = true)
+    public  List<Vector3> GetDiagonalNeighborCubes(Vector3 cube, int distance, bool cleanResults = true)
     {
         List<Vector3> cubes = new List<Vector3>();
         for (int i = 0; i < 6; i++)
@@ -272,7 +356,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-    public static List<Vector3> BooleanCombineCubes(List<Vector3> a, List<Vector3> b)
+    public  List<Vector3> BooleanCombineCubes(List<Vector3> a, List<Vector3> b)
     {
         List<Vector3> vec = a;
         foreach (Vector3 vb in b)
@@ -287,7 +371,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-    public static List<Vector3> BooleanDifferenceCubes(List<Vector3> a, List<Vector3> b)
+    public  List<Vector3> BooleanDifferenceCubes(List<Vector3> a, List<Vector3> b)
     {
         List<Vector3> vec = a;
         foreach (Vector3 vb in b)
@@ -302,7 +386,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-    public static List<Vector3> BooleanIntersectionCubes(List<Vector3> a, List<Vector3> b)
+    public  List<Vector3> BooleanIntersectionCubes(List<Vector3> a, List<Vector3> b)
     {
         List<Vector3> vec = new List<Vector3>();
         foreach (Vector3 va in a)
@@ -318,7 +402,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-    public static List<Vector3> BooleanExclusionCubes(List<Vector3> a, List<Vector3> b)
+    public  List<Vector3> BooleanExclusionCubes(List<Vector3> a, List<Vector3> b)
     {
         List<Vector3> vec = new List<Vector3>();
         foreach (Vector3 va in a)
@@ -336,7 +420,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cube"></param>
     /// <returns></returns>
-    public static Vector4 RotateCubeHexagonCellsRight(Vector3 cube)
+    public  Vector4 RotateCubeHexagonCellsRight(Vector3 cube)
     {
         return new Vector3(-cube.z, -cube.x, -cube.y);
     }
@@ -346,7 +430,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cube"></param>
     /// <returns></returns>
-    public static Vector4 RotateCubeHexagonCellsLeft(Vector3 cube)
+    public  Vector4 RotateCubeHexagonCellsLeft(Vector3 cube)
     {
         return new Vector3(-cube.y, -cube.z, -cube.x);
     }
@@ -357,7 +441,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-    public static float GetDistanceBetweenTwoCubes(Vector3 a, Vector3 b)
+    public  float GetDistanceBetweenTwoCubes(Vector3 a, Vector3 b)
     {
         return Mathf.Max(Mathf.Abs(a.x - b.x), Mathf.Abs(a.y - b.y), Mathf.Abs(a.z - b.z));
     }
@@ -369,7 +453,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="b"></param>
     /// <param name="t"></param>
     /// <returns></returns>
-    public static Vector3 GetLerpBetweenTwoCubes(Vector3 a, Vector3 b, float t)
+    public  Vector3 GetLerpBetweenTwoCubes(Vector3 a, Vector3 b, float t)
     {
         Vector3 cube = new Vector3(
             a.x + (b.x - a.x) * t,
@@ -387,7 +471,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="b"></param>
     /// <param name="distance"></param>
     /// <returns></returns>
-    public static Vector3 GetPointOnLineBetweenTwoCubes(Vector3 a, Vector3 b, int distance)
+    public  Vector3 GetPointOnLineBetweenTwoCubes(Vector3 a, Vector3 b, int distance)
     {
         float cubeDistance = GetDistanceBetweenTwoCubes(a, b);
         return RoundCube(GetLerpBetweenTwoCubes(a, b, ((1.0f / cubeDistance) * distance)));
@@ -400,7 +484,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="b"></param>
     /// <param name="cleanResults"></param>
     /// <returns></returns>
-    public static List<Vector3> GetLineBetweenTwoCubes(Vector3 a, Vector3 b, bool cleanResults = true)
+    public  List<Vector3> GetLineBetweenTwoCubes(Vector3 a, Vector3 b, bool cleanResults = true)
     {
         List<Vector3> cubes = new List<Vector3>();
         float cubeDistance = GetDistanceBetweenTwoCubes(a, b);
@@ -418,7 +502,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="cube"></param>
     /// <param name="cleanResults"></param>
     /// <returns></returns>
-    public static List<Vector3> GetReachableCubes(Vector3 cube, bool cleanResults = true)
+    public  List<Vector3> GetReachableCubes(Vector3 cube, bool cleanResults = true)
     {
         List<Vector3> cubes = new List<Vector3>();
 
@@ -447,7 +531,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="radius"></param>
     /// <param name="cleanResults"></param>
     /// <returns></returns>
-    public static List<Vector3> GetReachableCubes(Vector3 cube, int radius, bool cleanResults = true)
+    public  List<Vector3> GetReachableCubes(Vector3 cube, int radius, bool cleanResults = true)
     {
         if (radius == 1)
             return GetReachableCubes(cube);
@@ -487,7 +571,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="radius"></param>
     /// <param name="cleanResutls"></param>
     /// <returns></returns>
-    public static List<Vector3> GetSpiralCubes(Vector3 cube, int radius, bool cleanResutls = true)
+    public  List<Vector3> GetSpiralCubes(Vector3 cube, int radius, bool cleanResutls = true)
     {
         List<Vector3> vec = new List<Vector3>();
         Vector4 current = cube + GetCubeDirection(4) * (float)radius;
@@ -509,7 +593,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="cube"></param>
     /// <param name="radius"></param>
     /// <returns></returns>
-    public static List<Vector3> GetMultiSpiralCubes(Vector3 cube, int radius)
+    public  List<Vector3> GetMultiSpiralCubes(Vector3 cube, int radius)
     {
         List<Vector3> cubes = new List<Vector3>();
         cubes.Add(cube);
@@ -526,7 +610,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="target"></param>
     /// <param name="container"></param>
     /// <returns></returns>
-    public static List<Vector3> GetPathBetweenTwoCubes(Vector3 origin, Vector3 target, string container = "all")
+    public  List<Vector3> GetPathBetweenTwoCubes(Vector3 origin, Vector3 target, string container = "all")
     {
         if (origin == target)
             return new List<Vector3>();
@@ -610,7 +694,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cubes"></param>
     /// <returns></returns>
-    public static List<Vector3> CleanCubeResults(List<Vector3> cubes)
+    public  List<Vector3> CleanCubeResults(List<Vector3> cubes)
     {
         List<Vector3> r = new List<Vector3>();
         foreach (Vector3 cube in cubes)
@@ -624,7 +708,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    private static Dictionary<Vector3, HexagonCell> GethexContainer(string key)
+    private  Dictionary<Vector3, HexagonCell> GethexContainer(string key)
     {
         Dictionary<Vector3, HexagonCell> hexContainer;
         if (!_hexContainers.TryGetValue(key, out hexContainer))
@@ -638,7 +722,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <summary>
     /// // Removes empty HexagonCell containers
     /// </summary>
-    private static void CleanEmptyhexContainers()
+    private  void CleanEmptyhexContainers()
     {
         List<string> hexContainerKeysToRemove = new List<string>();
         Dictionary<Vector3, HexagonCell> hexContainer;
@@ -659,7 +743,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="cube"></param>
     /// <param name="key"></param>
     /// <returns></returns>
-    public static HexagonCell GetHexagonCellFromContainer(Vector3 cube, string key)
+    public  HexagonCell GetHexagonCellFromContainer(Vector3 cube, string key)
     {
         HexagonCell HexagonCell = null;
         Dictionary<Vector3, HexagonCell> hexContainer = GethexContainer(key);
@@ -675,7 +759,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public static List<HexagonCell> GetHexagonCellsFromContainer(string key)
+    public  List<HexagonCell> GetHexagonCellsFromContainer(string key)
     {
         List<HexagonCell> HexagonCells = new List<HexagonCell>();
         Dictionary<Vector3, HexagonCell> hexContainer = GethexContainer(key);
@@ -689,7 +773,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public static List<Vector3> GetCubesFromContainer(string key)
+    public  List<Vector3> GetCubesFromContainer(string key)
     {
         List<Vector3> cubes = new List<Vector3>();
         Dictionary<Vector3, HexagonCell> hexContainer = GethexContainer(key);
@@ -703,7 +787,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cube"></param>
     /// <param name="key"></param>
-    public static void AddCubeToContainer(Vector3 cube, string key)
+    public  void AddCubeToContainer(Vector3 cube, string key)
     {
         AddHexagonCellToContainer(GetHexagonCellFromContainer(cube, "all"), key);
     }
@@ -713,7 +797,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="cubes"></param>
     /// <param name="key"></param>
-    public static void AddCubesToContainer(List<Vector3> cubes, string key)
+    public  void AddCubesToContainer(List<Vector3> cubes, string key)
     {
         foreach (Vector3 cube in cubes)
             AddHexagonCellToContainer(GetHexagonCellFromContainer(cube, "all"), key);
@@ -725,7 +809,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <param name="HexagonCell"></param>
     /// <param name="key"></param>
     /// <returns></returns>
-    public static bool AddHexagonCellToContainer(HexagonCell HexagonCell, string key)
+    public  bool AddHexagonCellToContainer(HexagonCell HexagonCell, string key)
     {
         Dictionary<Vector3, HexagonCell> hexContainer = GethexContainer(key);
         if (!hexContainer.ContainsKey(HexagonCell.cube))
@@ -741,7 +825,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="HexagonCell"></param>
     /// <param name="key"></param>
-    public static void RemoveHexagonCellFromContainer(HexagonCell HexagonCell, string key)
+    public  void RemoveHexagonCellFromContainer(HexagonCell HexagonCell, string key)
     {
         Dictionary<Vector3, HexagonCell> hexContainer = GethexContainer(key);
         if (hexContainer.ContainsKey(HexagonCell.cube))
@@ -752,7 +836,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// // Removes all HexagonCells from given container key
     /// </summary>
     /// <param name="key"></param>
-    public static void RemoveAllHexagonCellsInContainer(string key)
+    public  void RemoveAllHexagonCellsInContainer(string key)
     {
         Dictionary<Vector3, HexagonCell> hexContainer = GethexContainer(key);
         hexContainer.Clear();
@@ -762,7 +846,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// // Removes a given HexagonCell from all containers
     /// </summary>
     /// <param name="HexagonCell"></param>
-    public static void RemoveHexagonCellFromAllContainers(HexagonCell HexagonCell)
+    public  void RemoveHexagonCellFromAllContainers(HexagonCell HexagonCell)
     {
         foreach (string key in _hexContainers.Keys)
             RemoveHexagonCellFromContainer(HexagonCell, key);
@@ -771,7 +855,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// <summary>
     ///  // Clears all HexagonCell containers
     /// </summary>
-    public static void ClearAllhexContainers()
+    public  void ClearAllHexContainers()
     {
         _hexContainers.Clear();
     }
@@ -780,7 +864,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// // Clears all HexagonCells from a given container key
     /// </summary>
     /// <param name="key"></param>
-    public static void ClearHexagonCellsFromContainer(string key)
+    public  void ClearHexagonCellsFromContainer(string key)
     {
         Dictionary<Vector3, HexagonCell> hexContainer = GethexContainer(key);
         hexContainer.Clear();
@@ -790,7 +874,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// // Hides all HexagonCells for a given container key
     /// </summary>
     /// <param name="key"></param>
-    public static void HideHexagonCellsInContainer(string key)
+    public  void HideHexagonCellsInContainer(string key)
     {
         foreach (HexagonCell HexagonCell in GetHexagonCellsFromContainer(key))
         {
@@ -804,7 +888,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// </summary>
     /// <param name="key"></param>
     /// <param name="bCollider"></param>
-    public static void ShowHexagonCellsInContainer(string key, bool bCollider = true)
+    public  void ShowHexagonCellsInContainer(string key, bool bCollider = true)
     {
         foreach (HexagonCell HexagonCell in GetHexagonCellsFromContainer(key))
         {
@@ -817,7 +901,7 @@ public class HexAlgorithms : MonoBehaviour {
     /// // Hides and Clears all HexagonCells for a given container key
     /// </summary>
     /// <param name="key"></param>
-    public static void HideAndClearhexContainer(string key)
+    public  void HideAndClearhexContainer(string key)
     {
         foreach (HexagonCell HexagonCell in GetHexagonCellsFromContainer(key))
             HexagonCell.Hide();
