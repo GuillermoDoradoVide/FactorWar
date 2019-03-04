@@ -66,12 +66,11 @@ public class HexGridManager : MonoBehaviour {
 
     private void Start()
     {
-        NewMap();
     }
 
-    public void NewMap()
+    public void NewMap(int size)
     {
-        _hexGrid.ConstructHexGrid(10);
+        _hexGrid.ConstructHexGrid(size);
 
         // Remove 25% of Coordinates except 0,0,0
         foreach (Vector3 cube in _hexGrid.GetCubesFromContainer("all"))

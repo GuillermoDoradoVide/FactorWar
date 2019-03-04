@@ -43,7 +43,7 @@ public class SaveLoadMap : MonoBehaviour {
         using (BinaryWriter writer = new BinaryWriter(File.Open(path, FileMode.Create)))
         {
             writer.Write(0);
-            map.Save(writer);
+            //map.Save(writer);
         }
     }
 
@@ -61,7 +61,7 @@ public class SaveLoadMap : MonoBehaviour {
             int header = reader.ReadInt32();
             if (header == 0)
             {
-                map.Load(reader);
+                //map.Load(reader);
             }
             else
             {
