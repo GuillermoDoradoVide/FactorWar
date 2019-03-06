@@ -4,7 +4,11 @@ using UnityEngine;
 
 public class HexGrid : MonoBehaviour {
 
-    private  Dictionary<string, Dictionary<Vector3, HexagonCell>> _hexContainers = new Dictionary<string, Dictionary<Vector3, HexagonCell>>();
+    private  Dictionary<BoxTypeFeature, Dictionary<Vector3, HexagonCell>> _hexContainers = new Dictionary<BoxTypeFeature, Dictionary<Vector3, HexagonCell>>();
+
+    private BoxTypeFeature _tileFeature;
+
+    private BoxTypeFeature _tileBlocksVisionFeature;
 
     private GameObject _hexGrid;
 
@@ -78,7 +82,7 @@ public class HexGrid : MonoBehaviour {
     /// <param name="cube"></param>
     public void AddCube(Vector3 cube)
     {
-        if (GetHexagonCellFromContainer(cube, "all") != null)
+        if (GetHexagonCellFromContainer(cube, _tileFeature) != null)
             return;
 
         GameObject obj = new GameObject("HexagonCell: [" + cube.x + "," + cube.y + "," + cube.z + "]");
@@ -90,7 +94,7 @@ public class HexGrid : MonoBehaviour {
             CubeToWorldPosition(cube)
         );
 
-        AddHexagonCellToContainer(hexagonCell, "all");
+        AddHexagonCellToContainer(hexagonCell, _tileFeature);
     }
 
     /// <summary>
@@ -109,7 +113,7 @@ public class HexGrid : MonoBehaviour {
     /// <param name="cube"></param>
     public void RemoveCube(Vector3 cube)
     {
-        HexagonCell hexagonCell = GetHexagonCellFromContainer(cube, "all");
+        HexagonCell hexagonCell = GetHexagonCellFromContainer(cube, _tileFeature);
         if (hexagonCell == null)
             return;
 
@@ -506,14 +510,14 @@ public class HexGrid : MonoBehaviour {
     {
         List<Vector3> cubes = new List<Vector3>();
 
-        HexagonCell originHexagonCell = GetHexagonCellFromContainer(cube, "all");
+        HexagonCell originHexagonCell = GetHexagonCellFromContainer(cube, _tileFeature);
         HexagonCell currentHexagonCell = null;
         Vector3 currentCube = cube;
 
         for (int i = 0; i < 6; i++)
         {
             currentCube = GetNeighborCube(cube, i);
-            currentHexagonCell = GetHexagonCellFromContainer(currentCube, "all");
+            currentHexagonCell = GetHexagonCellFromContainer(currentCube, _tileFeature);
 
             if (currentHexagonCell != null)
                 cubes.Add(currentCube);
@@ -610,7 +614,7 @@ public class HexGrid : MonoBehaviour {
     /// <param name="target"></param>
     /// <param name="container"></param>
     /// <returns></returns>
-    public  List<Vector3> GetPathBetweenTwoCubes(Vector3 origin, Vector3 target, string container = "all")
+    public  List<Vector3> GetPathBetweenTwoCubes(Vector3 origin, Vector3 target, BoxTypeFeature container = _tileFeature)
     {
         if (origin == target)
             return new List<Vector3>();
@@ -698,7 +702,7 @@ public class HexGrid : MonoBehaviour {
     {
         List<Vector3> r = new List<Vector3>();
         foreach (Vector3 cube in cubes)
-            if (GethexContainer("all").ContainsKey(cube))
+            if (GethexContainer(_tileFeature).ContainsKey(cube))
                 r.Add(cube);
         return r;
     }
@@ -708,7 +712,7 @@ public class HexGrid : MonoBehaviour {
     /// </summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    private  Dictionary<Vector3, HexagonCell> GethexContainer(string key)
+    private  Dictionary<Vector3, HexagonCell> GethexContainer(BoxTypeFeature key)
     {
         Dictionary<Vector3, HexagonCell> hexContainer;
         if (!_hexContainers.TryGetValue(key, out hexContainer))
@@ -724,16 +728,16 @@ public class HexGrid : MonoBehaviour {
     /// </summary>
     private  void CleanEmptyhexContainers()
     {
-        List<string> hexContainerKeysToRemove = new List<string>();
+        List<BoxTypeFeature> hexContainerKeysToRemove = new List<BoxTypeFeature>();
         Dictionary<Vector3, HexagonCell> hexContainer;
-        foreach (string key in _hexContainers.Keys)
+        foreach (BoxTypeFeature key in _hexContainers.Keys)
         {
             _hexContainers.TryGetValue(key, out hexContainer);
             if (hexContainer.Values.Count == 0)
                 hexContainerKeysToRemove.Add(key);
         }
 
-        foreach (string key in hexContainerKeysToRemove)
+        foreach (BoxTypeFeature key in hexContainerKeysToRemove)
             _hexContainers.Remove(key);
     }
 
@@ -743,7 +747,7 @@ public class HexGrid : MonoBehaviour {
     /// <param name="cube"></param>
     /// <param name="key"></param>
     /// <returns></returns>
-    public  HexagonCell GetHexagonCellFromContainer(Vector3 cube, string key)
+    public  HexagonCell GetHexagonCellFromContainer(Vector3 cube, BoxTypeFeature key)
     {
         HexagonCell HexagonCell = null;
         Dictionary<Vector3, HexagonCell> hexContainer = GethexContainer(key);
@@ -759,7 +763,7 @@ public class HexGrid : MonoBehaviour {
     /// </summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public  List<HexagonCell> GetHexagonCellsFromContainer(string key)
+    public  List<HexagonCell> GetHexagonCellsFromContainer(BoxTypeFeature key)
     {
         List<HexagonCell> HexagonCells = new List<HexagonCell>();
         Dictionary<Vector3, HexagonCell> hexContainer = GethexContainer(key);
@@ -773,7 +777,7 @@ public class HexGrid : MonoBehaviour {
     /// </summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public  List<Vector3> GetCubesFromContainer(string key)
+    public  List<Vector3> GetCubesFromContainer(BoxTypeFeature key)
     {
         List<Vector3> cubes = new List<Vector3>();
         Dictionary<Vector3, HexagonCell> hexContainer = GethexContainer(key);
@@ -787,9 +791,9 @@ public class HexGrid : MonoBehaviour {
     /// </summary>
     /// <param name="cube"></param>
     /// <param name="key"></param>
-    public  void AddCubeToContainer(Vector3 cube, string key)
+    public  void AddCubeToContainer(Vector3 cube, BoxTypeFeature key)
     {
-        AddHexagonCellToContainer(GetHexagonCellFromContainer(cube, "all"), key);
+        AddHexagonCellToContainer(GetHexagonCellFromContainer(cube, _tileFeature), key);
     }
 
     /// <summary>
@@ -797,10 +801,10 @@ public class HexGrid : MonoBehaviour {
     /// </summary>
     /// <param name="cubes"></param>
     /// <param name="key"></param>
-    public  void AddCubesToContainer(List<Vector3> cubes, string key)
+    public  void AddCubesToContainer(List<Vector3> cubes, BoxTypeFeature key)
     {
         foreach (Vector3 cube in cubes)
-            AddHexagonCellToContainer(GetHexagonCellFromContainer(cube, "all"), key);
+            AddHexagonCellToContainer(GetHexagonCellFromContainer(cube, _tileFeature), key);
     }
 
     /// <summary>
@@ -809,7 +813,7 @@ public class HexGrid : MonoBehaviour {
     /// <param name="HexagonCell"></param>
     /// <param name="key"></param>
     /// <returns></returns>
-    public  bool AddHexagonCellToContainer(HexagonCell HexagonCell, string key)
+    public  bool AddHexagonCellToContainer(HexagonCell HexagonCell, BoxTypeFeature key)
     {
         Dictionary<Vector3, HexagonCell> hexContainer = GethexContainer(key);
         if (!hexContainer.ContainsKey(HexagonCell.cube))
@@ -825,7 +829,7 @@ public class HexGrid : MonoBehaviour {
     /// </summary>
     /// <param name="HexagonCell"></param>
     /// <param name="key"></param>
-    public  void RemoveHexagonCellFromContainer(HexagonCell HexagonCell, string key)
+    public  void RemoveHexagonCellFromContainer(HexagonCell HexagonCell, BoxTypeFeature key)
     {
         Dictionary<Vector3, HexagonCell> hexContainer = GethexContainer(key);
         if (hexContainer.ContainsKey(HexagonCell.cube))
@@ -836,7 +840,7 @@ public class HexGrid : MonoBehaviour {
     /// // Removes all HexagonCells from given container key
     /// </summary>
     /// <param name="key"></param>
-    public  void RemoveAllHexagonCellsInContainer(string key)
+    public  void RemoveAllHexagonCellsInContainer(BoxTypeFeature key)
     {
         Dictionary<Vector3, HexagonCell> hexContainer = GethexContainer(key);
         hexContainer.Clear();
@@ -848,7 +852,7 @@ public class HexGrid : MonoBehaviour {
     /// <param name="HexagonCell"></param>
     public  void RemoveHexagonCellFromAllContainers(HexagonCell HexagonCell)
     {
-        foreach (string key in _hexContainers.Keys)
+        foreach (BoxTypeFeature key in _hexContainers.Keys)
             RemoveHexagonCellFromContainer(HexagonCell, key);
     }
 
@@ -864,7 +868,7 @@ public class HexGrid : MonoBehaviour {
     /// // Clears all HexagonCells from a given container key
     /// </summary>
     /// <param name="key"></param>
-    public  void ClearHexagonCellsFromContainer(string key)
+    public  void ClearHexagonCellsFromContainer(BoxTypeFeature key)
     {
         Dictionary<Vector3, HexagonCell> hexContainer = GethexContainer(key);
         hexContainer.Clear();
@@ -874,7 +878,7 @@ public class HexGrid : MonoBehaviour {
     /// // Hides all HexagonCells for a given container key
     /// </summary>
     /// <param name="key"></param>
-    public  void HideHexagonCellsInContainer(string key)
+    public  void HideHexagonCellsInContainer(BoxTypeFeature key)
     {
         foreach (HexagonCell HexagonCell in GetHexagonCellsFromContainer(key))
         {
@@ -888,7 +892,7 @@ public class HexGrid : MonoBehaviour {
     /// </summary>
     /// <param name="key"></param>
     /// <param name="bCollider"></param>
-    public  void ShowHexagonCellsInContainer(string key, bool bCollider = true)
+    public  void ShowHexagonCellsInContainer(BoxTypeFeature key, bool bCollider = true)
     {
         foreach (HexagonCell HexagonCell in GetHexagonCellsFromContainer(key))
         {
@@ -901,7 +905,7 @@ public class HexGrid : MonoBehaviour {
     /// // Hides and Clears all HexagonCells for a given container key
     /// </summary>
     /// <param name="key"></param>
-    public  void HideAndClearhexContainer(string key)
+    public  void HideAndClearhexContainer(BoxTypeFeature key)
     {
         foreach (HexagonCell HexagonCell in GetHexagonCellsFromContainer(key))
             HexagonCell.Hide();
